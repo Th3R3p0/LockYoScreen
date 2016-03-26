@@ -1,8 +1,22 @@
 import sys
 import Leap
 from Leap import SwipeGesture
-import ctypes
+import platform
 
+os = platform.system()
+if os == "Darwin":
+    import subprocess
+    def lock_screen_darwin():
+        subprocess.call('/System/Library/CoreServices/Menu\ Extras/User.menu/Contents/Resources/CGSession -suspend', shell=True)
+    lock_screen = lock_screen_darwin
+elif os == "Windows":
+    import ctypes
+    def lock_screen_windows():
+        ctypes.windll.user32.LockWorkStation()    
+    lock_screen = lock_screen_windows
+else:
+    print "Unsupported System: %s" % os
+    sys.exit(1)
 
 class SampleListener(Leap.Listener):
     state_names = ['STATE_INVALID', 'STATE_START', 'STATE_UPDATE', 'STATE_END']
@@ -29,7 +43,7 @@ class SampleListener(Leap.Listener):
             for hand in frame.hands:
                 if gesture.type == Leap.Gesture.TYPE_SWIPE:
                     swipe = SwipeGesture(gesture)
-                    ctypes.windll.user32.LockWorkStation()
+                    lock_screen()
                     print "locking screen"
                     #print "  Swipe id: %d, state: %s, position: %s, direction: %s, speed: %f" % (
                     #        gesture.id, self.state_names[gesture.state],
@@ -46,6 +60,7 @@ def main():
     controller.config.set("Gesture.Swipe.MinVelocity", 10)
     controller.config.save()
 
+    print "Running on %s" % platform.system()
     # Have the sample listener receive events from the controller
     controller.add_listener(listener)
 
