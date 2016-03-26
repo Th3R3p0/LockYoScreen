@@ -2,20 +2,37 @@ import sys
 import Leap
 from Leap import SwipeGesture
 import platform
+import time
+import os
 
-os = platform.system()
-if os == "Darwin":
+
+operatingsystem = platform.system()
+if operatingsystem == "Darwin":
     import subprocess
     def lock_screen_darwin():
         subprocess.call('/System/Library/CoreServices/Menu\ Extras/User.menu/Contents/Resources/CGSession -suspend', shell=True)
+
+    def spawn_app_darwin():
+        print "Spawning of applications not yet supported on Darwin"
+
     lock_screen = lock_screen_darwin
-elif os == "Windows":
+    spawn_app = spawn_app_darwin
+
+elif operatingsystem == "Windows":
     import ctypes
     def lock_screen_windows():
-        ctypes.windll.user32.LockWorkStation()    
+        ctypes.windll.user32.LockWorkStation()
+
+    def spawn_app_windows():
+        olddir = os.path.dirname(os.path.realpath(__file__))
+        os.chdir("C:/Program Files (x86)/Google/Chrome/Application/")
+        os.system("chrome.exe --new-window http://reddit.com/r/netsec")
+        os.chdir(olddir)
+
     lock_screen = lock_screen_windows
+    spawn_app = spawn_app_windows
 else:
-    print "Unsupported System: %s" % os
+    print "Unsupported System: %s" % operatingsystem
     sys.exit(1)
 
 class SampleListener(Leap.Listener):
@@ -29,6 +46,7 @@ class SampleListener(Leap.Listener):
         print "Connected"
 
         controller.enable_gesture(Leap.Gesture.TYPE_SWIPE);
+        controller.enable_gesture(Leap.Gesture.TYPE_CIRCLE);
 
     def on_disconnect(self, controller):
         # Note: not dispatched when running in a debugger.
@@ -45,10 +63,12 @@ class SampleListener(Leap.Listener):
                     swipe = SwipeGesture(gesture)
                     lock_screen()
                     print "locking screen"
-                    #print "  Swipe id: %d, state: %s, position: %s, direction: %s, speed: %f" % (
-                    #        gesture.id, self.state_names[gesture.state],
-                    #        swipe.position, swipe.direction, swipe.speed)
-
+                    time.sleep(5)
+                if gesture.type == Leap.Gesture.TYPE_CIRCLE:
+                    circle = SwipeGesture(gesture)
+                    spawn_app()
+                    print "spawn chrome"
+                    time.sleep(5)
 
 
 
