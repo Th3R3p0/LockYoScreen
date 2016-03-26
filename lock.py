@@ -9,6 +9,7 @@ import os
 operatingsystem = platform.system()
 if operatingsystem == "Darwin":
     import subprocess
+
     def lock_screen_darwin():
         subprocess.call('/System/Library/CoreServices/Menu\ Extras/User.menu/Contents/Resources/CGSession -suspend', shell=True)
 
@@ -20,6 +21,7 @@ if operatingsystem == "Darwin":
 
 elif operatingsystem == "Windows":
     import ctypes
+
     def lock_screen_windows():
         ctypes.windll.user32.LockWorkStation()
 
@@ -35,9 +37,9 @@ else:
     print "Unsupported System: %s" % operatingsystem
     sys.exit(1)
 
+
 class SampleListener(Leap.Listener):
     state_names = ['STATE_INVALID', 'STATE_START', 'STATE_UPDATE', 'STATE_END']
-
 
     def on_init(self, controller):
         print "Initialized"
@@ -58,18 +60,16 @@ class SampleListener(Leap.Listener):
     def on_frame(self, controller):
         frame = controller.frame()
         for gesture in frame.gestures():
-            for hand in frame.hands:
-                if gesture.type == Leap.Gesture.TYPE_SWIPE:
-                    swipe = SwipeGesture(gesture)
-                    lock_screen()
-                    print "locking screen"
-                    time.sleep(5)
-                if gesture.type == Leap.Gesture.TYPE_CIRCLE:
-                    circle = SwipeGesture(gesture)
-                    spawn_app()
-                    print "spawn chrome"
-                    time.sleep(5)
-
+            if gesture.type == Leap.Gesture.TYPE_SWIPE:
+                swipe = SwipeGesture(gesture)
+                lock_screen()
+                print "locking screen"
+                time.sleep(5)
+            if gesture.type == Leap.Gesture.TYPE_CIRCLE:
+                circle = SwipeGesture(gesture)
+                spawn_app()
+                print "spawn chrome"
+                time.sleep(5)
 
 
 def main():
